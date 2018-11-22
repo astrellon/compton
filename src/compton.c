@@ -1443,10 +1443,12 @@ win_blur_background(session_t *ps, win *w, Picture tgt_buffer,
   const int hei = w->heightb;
 
   double factor_center = 1.0;
+  double window_opacity = 1.0;
   // Adjust blur strength according to window opacity, to make it appear
   // better during fading
   if (!ps->o.blur_background_fixed) {
-    double pct = 1.0 - get_opacity_percent(w) * (1.0 - 1.0 / 9.0);
+    window_opacity = get_opacity_percent(w);
+    double pct = 1.0 - window_opacity * (1.0 - 1.0 / 9.0);
     factor_center = pct * 8.0 / (1.1 - pct);
   }
 
@@ -1508,10 +1510,17 @@ win_blur_background(session_t *ps, win *w, Picture tgt_buffer,
       break;
 #ifdef CONFIG_VSYNC_OPENGL_GLSL
     case BKEND_GLX:
+    {
+      double blur_factor = 1.0;
+      if (!ps->o.blur_background_fixed) {
+        blur_factor = window_opacity * window_opacity * (3.0 - 2.0 * window_opacity);
+      }
+
       // TODO: Handle frame opacity
-      glx_blur_dst(ps, x, y, wid, hei, ps->psglx->z - 0.5, factor_center,
+      glx_blur_dst(ps, x, y, wid, hei, ps->psglx->z - 0.5, factor_center, blur_factor,
           reg_paint, pcache_reg, &w->glx_blur_cache);
       break;
+    }
 #endif
     default:
       assert(0);
@@ -5056,7 +5065,7 @@ parse_matrix(session_t *ps, const char *src, const char **endptr) {
   int wid = 0, hei = 0;
   const char *pc = NULL;
   XFixed *matrix = NULL;
-  
+
   // Get matrix width and height
   {
     double val = 0.0;
