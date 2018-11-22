@@ -2272,7 +2272,7 @@ glx_set_clip(session_t *ps, XserverRegion reg, const reg_data_t *pcache_reg);
 #ifdef CONFIG_VSYNC_OPENGL_GLSL
 bool
 glx_blur_dst(session_t *ps, int dx, int dy, int width, int height, float z,
-    GLfloat factor_center,
+    GLfloat factor_center, GLfloat blur_factor,
     XserverRegion reg_tgt, const reg_data_t *pcache_reg,
     glx_blur_cache_t *pbc);
 #endif

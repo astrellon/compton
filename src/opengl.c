@@ -1583,6 +1583,7 @@ glx_conv_blur_dst_end:
 
 bool
 glx_kawase_blur_dst(session_t *ps, int dx, int dy, int width, int height, float z,
+    GLfloat blur_factor,
     XserverRegion reg_tgt, const reg_data_t *pcache_reg,
     glx_blur_cache_t *pbc) {
   const bool have_scissors = glIsEnabled(GL_SCISSOR_TEST);
@@ -1590,7 +1591,7 @@ glx_kawase_blur_dst(session_t *ps, int dx, int dy, int width, int height, float 
   bool ret = false;
 
   int iterations = ps->o.blur_strength.iterations;
-  float offset = ps->o.blur_strength.offset;
+  float offset = ps->o.blur_strength.offset * blur_factor;
 
   // Calculate copy region size
   glx_blur_cache_t ibc = { .width = 0, .height = 0 };
@@ -1820,7 +1821,7 @@ glx_kawase_blur_dst_end:
 
 bool
 glx_blur_dst(session_t *ps, int dx, int dy, int width, int height, float z,
-    GLfloat factor_center,
+    GLfloat factor_center, GLfloat blur_factor,
     XserverRegion reg_tgt, const reg_data_t *pcache_reg,
     glx_blur_cache_t *pbc) {
   assert(ps->psglx->blur_passes[0].prog);
@@ -1833,7 +1834,7 @@ glx_blur_dst(session_t *ps, int dx, int dy, int width, int height, float z,
       break;
     case BLRMTHD_KAWASE:
       ret = glx_kawase_blur_dst(ps, dx, dy, width, height, z,
-        reg_tgt, pcache_reg, pbc);
+        blur_factor, reg_tgt, pcache_reg, pbc);
       break;
     default:
       ret = false;
